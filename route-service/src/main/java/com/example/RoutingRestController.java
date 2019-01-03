@@ -14,50 +14,50 @@ import java.net.URI;
 import java.util.Collections;
 
 /**
-	* @author Ben Hale
-	*/
+ * @author Ben Hale
+ */
 @RestController
 class RoutingRestController {
 
-		// <1>
-		private static final String FORWARDED_URL = "X-CF-Forwarded-Url";
+    // <1>
+    private static final String FORWARDED_URL = "X-CF-Forwarded-Url";
 
-		private static final String PROXY_METADATA = "X-CF-Proxy-Metadata";
+    private static final String PROXY_METADATA = "X-CF-Proxy-Metadata";
 
-		private static final String PROXY_SIGNATURE = "X-CF-Proxy-Signature";
+    private static final String PROXY_SIGNATURE = "X-CF-Proxy-Signature";
 
-		private final Log logger = LogFactory.getLog(this.getClass());
+    private final Log logger = LogFactory.getLog(this.getClass());
 
-		private final RestOperations restOperations;
+    private final RestOperations restOperations;
 
-		RoutingRestController(RestTemplate rt) {
-				this.restOperations = rt;
-		}
+    RoutingRestController(RestTemplate rt) {
+        this.restOperations = rt;
+    }
 
-		// <2>
-		@RequestMapping(headers = {FORWARDED_URL, PROXY_METADATA, PROXY_SIGNATURE})
-		ResponseEntity<?> service(RequestEntity<byte[]> incoming) {
+    // <2>
+    @RequestMapping(headers = {FORWARDED_URL, PROXY_METADATA, PROXY_SIGNATURE})
+    ResponseEntity<?> service(RequestEntity<byte[]> incoming) {
 
-				this.logger.info("incoming request: " + incoming);
+        this.logger.info("incoming request: " + incoming);
 
-				HttpHeaders headers = new HttpHeaders();
-				headers.putAll(incoming.getHeaders());
-				headers.put("X-CNJ-Name", Collections.singletonList("Cloud Natives"));
+        HttpHeaders headers = new HttpHeaders();
+        headers.putAll(incoming.getHeaders());
+        headers.put("X-CNJ-Name", Collections.singletonList("Cloud Natives"));
 
-				// <3>
-				URI uri = headers
-					.remove(FORWARDED_URL)
-					.stream()
-					.findFirst()
-					.map(URI::create)
-					.orElseThrow(() -> new IllegalStateException(String.format("No %s header present", FORWARDED_URL)));
+        // <3>
+        URI uri = headers
+                .remove(FORWARDED_URL)
+                .stream()
+                .findFirst()
+                .map(URI::create)
+                .orElseThrow(() -> new IllegalStateException(String.format("No %s header present", FORWARDED_URL)));
 
-				// <4>
-				RequestEntity<?> outgoing = new RequestEntity<>(
-					((RequestEntity<?>) incoming).getBody(), headers, incoming.getMethod(), uri);
+        // <4>
+        RequestEntity<?> outgoing = new RequestEntity<>(
+                ((RequestEntity<?>) incoming).getBody(), headers, incoming.getMethod(), uri);
 
-				this.logger.info("outgoing request: {}" + outgoing);
+        this.logger.info("outgoing request: {}" + outgoing);
 
-				return this.restOperations.exchange(outgoing, byte[].class);
-		}
+        return this.restOperations.exchange(outgoing, byte[].class);
+    }
 }

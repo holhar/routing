@@ -20,47 +20,47 @@ import java.util.function.Function;
 @SpringBootTest(classes = RoutingIT.Config.class)
 public class RoutingIT {
 
-		@SpringBootApplication
-		public static class Config {
+    @SpringBootApplication
+    public static class Config {
 
-				@Bean
-				RouteServiceDeployer routeServiceDeployer(
-					CloudFoundryService cfs,
-					CloudFoundryOperations cops) {
-						return new RouteServiceDeployer(cfs, cops);
-				}
-		}
+        @Bean
+        RouteServiceDeployer routeServiceDeployer(
+                CloudFoundryService cfs,
+                CloudFoundryOperations cops) {
+            return new RouteServiceDeployer(cfs, cops);
+        }
+    }
 
-		@Autowired
-		private RouteServiceDeployer routeServiceDeployer;
+    @Autowired
+    private RouteServiceDeployer routeServiceDeployer;
 
-		@Autowired
-		private CloudFoundryOperations cloudFoundryOperations;
+    @Autowired
+    private CloudFoundryOperations cloudFoundryOperations;
 
-		@Test
-		public void deploy() {
+    @Test
+    public void deploy() {
 
-				Function<String, Mono<Boolean>> appExists = input -> this.cloudFoundryOperations.applications().list().filter(si -> si.getName().equals(input)).hasElements();
-				Function<String, Mono<Boolean>> svcExists = input -> this.cloudFoundryOperations.services().listInstances().filter(si -> si.getName().equals(input)).hasElements();
+        Function<String, Mono<Boolean>> appExists = input -> this.cloudFoundryOperations.applications().list().filter(si -> si.getName().equals(input)).hasElements();
+        Function<String, Mono<Boolean>> svcExists = input -> this.cloudFoundryOperations.services().listInstances().filter(si -> si.getName().equals(input)).hasElements();
 
-				DeployResult deployResult = this.routeServiceDeployer.deploy();
+        DeployResult deployResult = this.routeServiceDeployer.deploy();
 
-				Publisher<Boolean> just = Flux
-					.just(
-						appExists.apply(deployResult.getDownstreamServiceAppName()),
-						svcExists.apply(deployResult.getRouteServiceName()),
-						svcExists.apply(deployResult.getRoutingEurekaServiceName()))
-					.flatMap(m -> m.flatMap(Mono::just));
+        Publisher<Boolean> just = Flux
+                .just(
+                        appExists.apply(deployResult.getDownstreamServiceAppName()),
+                        svcExists.apply(deployResult.getRouteServiceName()),
+                        svcExists.apply(deployResult.getRoutingEurekaServiceName()))
+                .flatMap(m -> m.flatMap(Mono::just));
 
-				Flux<Boolean> results = Flux
-					.from(deployResult.getResults())
-					.thenMany(just);
+        Flux<Boolean> results = Flux
+                .from(deployResult.getResults())
+                .thenMany(just);
 
-				StepVerifier
-					.create(results)
-					.expectNextMatches(x -> x)
-					.expectNextMatches(x -> x)
-					.expectNextMatches(x -> x)
-					.verifyComplete();
-		}
+        StepVerifier
+                .create(results)
+                .expectNextMatches(x -> x)
+                .expectNextMatches(x -> x)
+                .expectNextMatches(x -> x)
+                .verifyComplete();
+    }
 }

@@ -15,24 +15,24 @@ import java.util.Map;
 @Component
 class LoadBalancedWebClientRunner implements ApplicationRunner {
 
- private final Log log = LogFactory.getLog(getClass());
+    private final Log log = LogFactory.getLog(getClass());
 
- private final WebClient client;
+    private final WebClient client;
 
- LoadBalancedWebClientRunner(@LoadBalanced WebClient client) {
-  this.client = client;
- }
+    LoadBalancedWebClientRunner(@LoadBalanced WebClient client) {
+        this.client = client;
+    }
 
- // <1>
- @Override
- public void run(ApplicationArguments args) throws Exception {
+    // <1>
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
 
-  Map<String, String> variables = Collections.singletonMap("name",
-   "Cloud Natives!");
+        Map<String, String> variables = Collections.singletonMap("name",
+                "Cloud Natives!");
 
-  // <2>
-  this.client.get().uri("http://greetings-service/hi/{name}", variables)
-   .retrieve().bodyToMono(JsonNode.class).map(x -> x.get("greeting").asText())
-   .subscribe(greeting -> log.info("greeting: " + greeting));
- }
+        // <2>
+        this.client.get().uri("http://greetings-service/hi/{name}", variables)
+                .retrieve().bodyToMono(JsonNode.class).map(x -> x.get("greeting").asText())
+                .subscribe(greeting -> log.info("greeting: " + greeting));
+    }
 }

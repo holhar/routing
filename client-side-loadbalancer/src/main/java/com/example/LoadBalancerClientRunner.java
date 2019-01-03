@@ -13,21 +13,21 @@ import java.net.URI;
 @Component
 class LoadBalancerClientRunner implements ApplicationRunner {
 
- private final Log log = LogFactory.getLog(getClass());
+    private final Log log = LogFactory.getLog(getClass());
 
- private final LoadBalancerClient loadBalancerClient;
+    private final LoadBalancerClient loadBalancerClient;
 
- LoadBalancerClientRunner(LoadBalancerClient loadBalancerClient) {
-  this.loadBalancerClient = loadBalancerClient;
- }
+    LoadBalancerClientRunner(LoadBalancerClient loadBalancerClient) {
+        this.loadBalancerClient = loadBalancerClient;
+    }
 
- @Override
- public void run(ApplicationArguments args) throws Exception {
+    @Override
+    public void run(ApplicationArguments args) throws Exception {
 
-  LoadBalancerRequest<URI> loadBalancerRequest = server -> URI.create("http://"
-   + server.getHost() + ":" + server.getPort() + "/");
-  URI uri = this.loadBalancerClient.execute("greetings-service",
-   loadBalancerRequest);
-  log.info("resolved service " + uri.toString());
- }
+        LoadBalancerRequest<URI> loadBalancerRequest = server -> URI.create("http://"
+                + server.getHost() + ":" + server.getPort() + "/");
+        URI uri = this.loadBalancerClient.execute("greetings-service",
+                loadBalancerRequest);
+        log.info("resolved service " + uri.toString());
+    }
 }
